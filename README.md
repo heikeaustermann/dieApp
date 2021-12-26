@@ -7,7 +7,7 @@ Für die Lauffähigkeit des Tools sind Voraussetzungen:
 - ID2T installiert zum Aufruf per ./id2t
 - für die Tests: Googletest in einem Verzeichnis neben dem Tool-Verzeichnis
 
-Das Verzeichnis enthält diese README.md, eine License.txt mit der MIT-Lizenz und vierzehn Unterverzeichnisse:
+Das Verzeichnis enthält diese README.md, eine LICENSE.txt mit der MIT-Lizenz und vierzehn Unterverzeichnisse:
 - aufruf für den Start des Tools
 - ressourcen für global genutzte Makefile-Einstellungen
 - modul[N]_[XYZXYZ] für den Quellcode zu den fünf Modulen
