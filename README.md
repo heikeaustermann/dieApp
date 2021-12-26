@@ -1,5 +1,5 @@
 Dies ist die Implementierung des Tools für die Masterarbeit "Erzeugung von Netzwerkverkehr mit Anomalien".
-Die erste Version wurde von Heike Austermann im Studiengang Master Praktische Informatik (PO-Version 17) zum 15.10.2021 erstellt.
+Die erste Version wurde von Heike Austermann zum 15.10.2021 erstellt.
 
 Für die Lauffähigkeit des Tools sind Voraussetzungen:
 - eine aktuelle Linuxumgebung mit einem aktuellen C++-Compiler und für pcapstego aktuellem python
@@ -7,7 +7,7 @@ Für die Lauffähigkeit des Tools sind Voraussetzungen:
 - ID2T installiert zum Aufruf per ./id2t
 - für die Tests: Googletest in einem Verzeichnis neben dem Tool-Verzeichnis
 
-Das Verzeichnis enthält diese README.md, eine License.txt und vierzehn Unterverzeichnisse:
+Das Verzeichnis enthält diese README.md, eine License.txt mit der MIT-Lizenz und vierzehn Unterverzeichnisse:
 - aufruf für den Start des Tools
 - ressourcen für global genutzte Makefile-Einstellungen
 - modul[N]_[XYZXYZ] für den Quellcode zu den fünf Modulen
@@ -17,12 +17,16 @@ Das Verzeichnis enthält diese README.md, eine License.txt und vierzehn Unterver
 
 
 Aufruf des Tools:
+```
 cd aufruf
 make
 ./dieApp
+```
 
 
 Aufruf der Tests:
+```
 cd tests_modul[N]_[XYZXYZ]
 make
 ./tester
+```
