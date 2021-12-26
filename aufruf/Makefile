@@ -1,4 +1,4 @@
-include /usr/local/etc/PcapPlusPlus.mk
+include ../ressourcen/PcapPlusPlus.mk
 
 # Merker: zukünftig flag -std=c++17 auf -std=c++20 (bzw -std=c++2a)
 CXX := g++
@@ -26,7 +26,7 @@ clean:
 	rm -f $(APP) *.o *.pcap *.csv *.txt
 
 $(APP) : $(OBJS) dieapp.cpp
-	-$(CXX)  $(PCAPPP_LIBS_DIR) -lpthread $^ $(PCAPPP_LIBS) -o $(APP)
+	-$(CXX) $(PCAPPP_LIBS_DIR) $(PCAPPP_INCLUDES) -lpthread $^ $(PCAPPP_LIBS) -o $(APP)
 
 $(OBJS) : $(SOURCES) $(HEADERS) 
 	-$(CXX) $(CXXFLAGS) $(PCAPPP_BUILD_FLAGS) $(PCAPPP_INCLUDES) $(INCLUDE) -c $(SOURCES)
