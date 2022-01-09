@@ -2,7 +2,7 @@ Dies ist die Implementierung des Tools für die Masterarbeit "Erzeugung von Netz
 Die erste Version wurde von Heike Austermann zum 15.10.2021 erstellt.
 
 Für die Lauffähigkeit des Tools sind Voraussetzungen:
-- eine aktuelle Linuxumgebung mit einem aktuellen C++-Compiler und für pcapstego aktuellem python inklusive pandas
+- eine aktuelle Linuxumgebung mit einem aktuellen C++-Compiler und für pcapstego aktuellem python inklusive pandas und scapy
 - PcapPlusPlus in einem Verzeichnis neben dem Tool-Verzeichnis
 - ID2T installiert zum Aufruf per ./id2t
 - für die Tests: Googletest in einem Verzeichnis neben dem Tool-Verzeichnis
