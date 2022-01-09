@@ -16,8 +16,8 @@ struct Abfolge {
 
     uint32_t kettenID;
     long long endzeitstempel;
-    uint32_t schrittnummer;
     Erzeugungsmethode methode;
+    uint32_t schrittnummer;
     bool inklusiveLayer2;
     pcpp::MacAddress macquelle="";
     pcpp::MacAddress macziel="";

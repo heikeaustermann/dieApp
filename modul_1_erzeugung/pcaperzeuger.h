@@ -19,7 +19,7 @@ class PcapErzeuger{
 
     private:
     void initialeBefuellung();
-    void befuelle(uint32_t abfolgenummer);
+    bool befuelle(uint32_t abfolgenummer, long long anfangszeit);
     bool erstellePaket(uint32_t abfolgenummer);
     bool schreibeTCPPaket();
     bool schreibeUDPPaket();
@@ -32,14 +32,14 @@ class PcapErzeuger{
     long long endzeitpunkt;
     uint32_t intervallzwischenKetten;
     uint32_t maximalAnzahlKetten;
-    uint32_t anzahlDefKetten;
+    uint32_t anzahlKettendefinitionen;
     bool inklusiveLayer2;
 
-    std::vector<Kettendef> ketten;
+    std::vector<Kettendef> kettendefinitionen;
 
-    std::vector<long long> kettenzeiten;
+    std::vector<long long> abfolgenzeiten;
     std::vector<Abfolge> kettenabfolgen;
-    std::vector<Zeitstempelgeber> kettenzeitstempelgeber;
+    std::vector<Zeitstempelgeber> abfolgenzeitstempelgeber;
 
     long long aktuelleZeit;
 

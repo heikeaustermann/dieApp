@@ -38,7 +38,7 @@ bool PcapErzeuger::leseKonfig() {
     endzeitpunkt = konfigleser.gebeEndTimestamp();
     intervallzwischenKetten = konfigleser.gebeIntervall();
     maximalAnzahlKetten = konfigleser.gebeMaxKetten();
-    anzahlDefKetten = konfigleser.gebeAnzahlKetten(); 
+    anzahlKettendefinitionen = konfigleser.gebeAnzahlKetten(); 
     inklusiveLayer2 = konfigleser.gebeEinschliesslichLayer2();
 
     // Einlesen der Kettendefinitionen
@@ -61,7 +61,7 @@ bool PcapErzeuger::leseKonfig() {
     uint32_t zaehlerZiele;
 
     uint32_t kettennr = 1;
-    while (kettennr < anzahlDefKetten+1) {
+    while (kettennr < anzahlKettendefinitionen+1) {
         zaehlerQuellen = 1;
         zaehlerZiele = 1;
         ipQuellen.clear();
@@ -97,12 +97,12 @@ bool PcapErzeuger::leseKonfig() {
 
         Kettendef kette(anfang,ende,gewicht,methode,intervall,vergroesserungsfaktor,vergroesserungswahrscheinlichkeit,ipQuellen,ipZiele,macQuellen,macZiele,zaehlerQuellen-1,zaehlerZiele-1);
 
-        ketten.insert(ketten.end(),kette);
+        kettendefinitionen.insert(kettendefinitionen.end(),kette);
 
         kettennr++;
     }
 
-    if (anzahlDefKetten != ketten.size()) {return false;}
+    if (anzahlKettendefinitionen != kettendefinitionen.size()) {return false;}
 
     konfiggelesen = true;
     return true;
@@ -113,7 +113,7 @@ bool PcapErzeuger::schreibePcap() {
     
     initialeBefuellung();
 
-    aktuelleZeit = *std::min_element(kettenzeiten.begin(),kettenzeiten.end());
+    aktuelleZeit = *std::min_element(abfolgenzeiten.begin(),abfolgenzeiten.end());
 
     // pruefBool für die Schleife
     bool pruef = true;
@@ -130,7 +130,7 @@ bool PcapErzeuger::schreibePcap() {
     while(pruef) {
         // bestimmen der nächsten Abfolge
         abfolgenummer = 0;
-        while (kettenzeiten[abfolgenummer] != aktuelleZeit) {abfolgenummer++;}
+        while (abfolgenzeiten[abfolgenummer] != aktuelleZeit) {abfolgenummer++;}
 
         // schreiben des nächsten Pakets aus der Kette zur Abfolgenummer
         // verlassen der Schleife, falls Problem beim Schreiben des Pakets
@@ -141,13 +141,13 @@ bool PcapErzeuger::schreibePcap() {
         if (paketnummer == maximalAnzahlPakete) {pruef = false;}
 
         // nächsten Zeitstempel bestimmen
-        kettenzeiten[abfolgenummer] = kettenzeitstempelgeber[abfolgenummer].gebeZeitstempel();
+        abfolgenzeiten[abfolgenummer] = abfolgenzeitstempelgeber[abfolgenummer].gebeZeitstempel();
 
         // Zeit weitersetzen
-        aktuelleZeit = *std::min_element(kettenzeiten.begin(),kettenzeiten.end());
+        aktuelleZeit = *std::min_element(abfolgenzeiten.begin(),abfolgenzeiten.end());
 
         // ggf neue Kette zur Abfolgenummer
-        if (kettenabfolgen[abfolgenummer].beendeteKette(aktuelleZeit)) {befuelle(abfolgenummer);}
+        if (kettenabfolgen[abfolgenummer].beendeteKette(aktuelleZeit)) {befuelle(abfolgenummer, aktuelleZeit);}
 
         // verlassen der Schleife, falls Endzeitpunkt erreicht
         if (aktuelleZeit > endzeitpunkt) {pruef = false;}
@@ -161,142 +161,92 @@ bool PcapErzeuger::schreibePcap() {
 
 void PcapErzeuger::initialeBefuellung() {
     long long anfangszeit = startzeitpunkt;
-
-    long long endzeitstempel;
-    
-    // initiale Befüllung der Ketten
-    std::vector<uint32_t> kettengewichte;
-    uint32_t summegewichte = 0;
-    int zufall;
-    uint32_t naechsteKette;
-    for (uint32_t i = 0; i< anzahlDefKetten; i++) {kettengewichte.insert(kettengewichte.end(),0);}
-    kettengewichte.shrink_to_fit();
+    Abfolge abfolge(0,0,Erzeugungsmethode::UNDEFINED,0,false,kettendefinitionen[0].macQuellen[0],kettendefinitionen[0].macZiele[0],kettendefinitionen[0].ipQuellen[0],kettendefinitionen[0].ipZiele[0],0,0);
+    Zeitstempelgeber zeitstempelgeber(0,0,0);
 
     for (uint32_t i = 0; i<maximalAnzahlKetten; i++) {
-        while ((summegewichte == 0) & (anfangszeit < endzeitpunkt)) {
-            summegewichte = 0;
-            for (uint32_t j = 0; j<anzahlDefKetten; j++) {kettengewichte[j] = 0;}
-            for (uint32_t j = 0; j<anzahlDefKetten; j++) {
-                if ((anfangszeit >= ketten[j].zeitraumanfang) & (anfangszeit <= ketten[j].zeitraumende)) {
-                    kettengewichte[j] = ketten[j].gewicht;
-                    summegewichte += ketten[j].gewicht;
-                } 
-            }
-            anfangszeit += Intervallgeber::exponentiell(intervallzwischenKetten,2*intervallzwischenKetten);
-        }
-        kettenzeiten.insert(kettenzeiten.end(),anfangszeit);
-        zufall = rand()%summegewichte + 1;
-        naechsteKette = 0;
-        while (zufall > 0) {
-            zufall = zufall - ketten[naechsteKette].gewicht;
-            naechsteKette++;
-        }
-        naechsteKette--;
-
-        endzeitstempel = ketten[naechsteKette].zeitraumende;
-
-        int quelle = rand()%ketten[naechsteKette].anzahlQuellen;
-        ip1 = ketten[naechsteKette].ipQuellen[quelle];
-        mac1 = ketten[naechsteKette].macQuellen[quelle];
-
-        int ziel = rand()%ketten[naechsteKette].anzahlZiele;
-        ip2 = ketten[naechsteKette].ipZiele[ziel];
-        mac2 = ketten[naechsteKette].macZiele[ziel];
-
-        if (ketten[naechsteKette].methode == Erzeugungsmethode::APPDATA)
-        {
-            port1 = 32768 + rand()%32768; // Vereinigung IANA-Empfehlung und Linux-Kernel
-            port2 = 443; // service name: https
-            Zeitstempelgeber zeitstempelgeber(anfangszeit,ketten[naechsteKette].intervall,ketten[naechsteKette].vergroesserungsfaktor,ketten[naechsteKette].vergroesserungswahrscheinlichkeit);
-            kettenzeitstempelgeber.insert(kettenzeitstempelgeber.end(),zeitstempelgeber);
-        } else {
-            if (ketten[naechsteKette].methode == Erzeugungsmethode::DNS) {
-                port1 = 32768 + rand()%32768; // Vereinigung IANA-Empfehlung und Linux-Kernel
-                port2 = 53; // service name: domain
-                Zeitstempelgeber zeitstempelgeber(anfangszeit,ketten[naechsteKette].intervall,ketten[naechsteKette].vergroesserungsfaktor);
-                kettenzeitstempelgeber.insert(kettenzeitstempelgeber.end(),zeitstempelgeber);
-            } else {
-                port1 = 0;
-                port2 = 0;
-                Zeitstempelgeber zeitstempelgeber(anfangszeit,ketten[naechsteKette].intervall,ketten[naechsteKette].vergroesserungsfaktor);
-                kettenzeitstempelgeber.insert(kettenzeitstempelgeber.end(),zeitstempelgeber);
-            }
-        }
-        
-        Abfolge abfolge(naechsteKette,endzeitstempel,ketten[naechsteKette].methode,0,inklusiveLayer2,mac1,mac2,ip1,ip2,port1,port2);
+        abfolgenzeiten.insert(abfolgenzeiten.end(),anfangszeit);
         kettenabfolgen.insert(kettenabfolgen.end(),abfolge);
-        summegewichte = 0;
+        abfolgenzeitstempelgeber.insert(abfolgenzeitstempelgeber.end(),zeitstempelgeber);
+        if (befuelle(i,anfangszeit)) {
+            anfangszeit = abfolgenzeiten[i];
+        } else {
+            abfolgenzeiten.pop_back();
+            kettenabfolgen.pop_back();
+            abfolgenzeitstempelgeber.pop_back();
+        }
     }
-    kettenzeiten.shrink_to_fit();
+    
+    abfolgenzeiten.shrink_to_fit();
     kettenabfolgen.shrink_to_fit();
-    kettenzeitstempelgeber.shrink_to_fit();
+    abfolgenzeitstempelgeber.shrink_to_fit();
 }
 
-void PcapErzeuger::befuelle(uint32_t abfolgenummer) {
-    long long anfangszeit = aktuelleZeit;
+bool PcapErzeuger::befuelle(uint32_t abfolgenummer, long long anfangszeit) {
     std::vector<uint32_t> kettengewichte;
     uint32_t summegewichte = 0;
     int zufall;
     uint32_t naechsteKette;
-    for (uint32_t i = 0; i< anzahlDefKetten; i++) {kettengewichte.insert(kettengewichte.end(),0);}
+    for (uint32_t i = 0; i< anzahlKettendefinitionen; i++) {kettengewichte.insert(kettengewichte.end(),0);}
     kettengewichte.shrink_to_fit();
 
     // bestimmen der nächsten Anfangszeit
     while ((summegewichte == 0) & (anfangszeit < endzeitpunkt)) {
         summegewichte = 0;
-        for (uint32_t j = 0; j<anzahlDefKetten; j++) {kettengewichte[j] = 0;}
-        for (uint32_t j = 0; j<anzahlDefKetten; j++) {
-            if ((anfangszeit >= ketten[j].zeitraumanfang) & (anfangszeit <= ketten[j].zeitraumende)) {
-                kettengewichte[j] = ketten[j].gewicht;
-                summegewichte += ketten[j].gewicht;
+        for (uint32_t j = 0; j<anzahlKettendefinitionen; j++) {kettengewichte[j] = 0;}
+        for (uint32_t j = 0; j<anzahlKettendefinitionen; j++) {
+            if ((anfangszeit >= kettendefinitionen[j].zeitraumanfang) & (anfangszeit <= kettendefinitionen[j].zeitraumende)) {
+                kettengewichte[j] = kettendefinitionen[j].gewicht;
+                summegewichte += kettendefinitionen[j].gewicht;
             } 
         }
         anfangszeit += Intervallgeber::exponentiell(intervallzwischenKetten,2*intervallzwischenKetten);
     }
-    kettenzeiten[abfolgenummer] = anfangszeit;
-    if (anfangszeit > endzeitpunkt) {return;}
+    abfolgenzeiten[abfolgenummer] = anfangszeit;
+    if (anfangszeit > endzeitpunkt) {return false;}
 
     // bestimmen einer passenden Kette
     zufall = rand()%summegewichte + 1;
     naechsteKette = 0;
     while (zufall > 0) {
-        zufall = zufall - ketten[naechsteKette].gewicht;
+        zufall = zufall - kettendefinitionen[naechsteKette].gewicht;
         naechsteKette++;
     }
     naechsteKette--;
 
-    long long endzeitstempel = ketten[naechsteKette].zeitraumende;
+    long long endzeitstempel = kettendefinitionen[naechsteKette].zeitraumende;
 
-    int quelle = rand()%ketten[naechsteKette].anzahlQuellen;
-    ip1 = ketten[naechsteKette].ipQuellen[quelle];
-    mac1 = ketten[naechsteKette].macQuellen[quelle];
+    int quelle = rand()%kettendefinitionen[naechsteKette].anzahlQuellen;
+    ip1 = kettendefinitionen[naechsteKette].ipQuellen[quelle];
+    mac1 = kettendefinitionen[naechsteKette].macQuellen[quelle];
 
-    int ziel = rand()%ketten[naechsteKette].anzahlZiele;
-    ip2 = ketten[naechsteKette].ipZiele[ziel];
-    mac2 = ketten[naechsteKette].macZiele[ziel];
+    int ziel = rand()%kettendefinitionen[naechsteKette].anzahlZiele;
+    ip2 = kettendefinitionen[naechsteKette].ipZiele[ziel];
+    mac2 = kettendefinitionen[naechsteKette].macZiele[ziel];
 
-    if (ketten[naechsteKette].methode == Erzeugungsmethode::APPDATA)
+    if (kettendefinitionen[naechsteKette].methode == Erzeugungsmethode::APPDATA)
     {
         port1 = 32768 + rand()%32768; // Vereinigung IANA-Empfehlung und Linux-Kernel
         port2 = 443; // service name: https
-        Zeitstempelgeber zeitstempelgeber(anfangszeit,ketten[naechsteKette].intervall,ketten[naechsteKette].vergroesserungsfaktor,ketten[naechsteKette].vergroesserungswahrscheinlichkeit);
-        kettenzeitstempelgeber.insert(kettenzeitstempelgeber.end(),zeitstempelgeber);
+        Zeitstempelgeber zeitstempelgeber(anfangszeit,kettendefinitionen[naechsteKette].intervall,kettendefinitionen[naechsteKette].vergroesserungsfaktor,kettendefinitionen[naechsteKette].vergroesserungswahrscheinlichkeit);
+        abfolgenzeitstempelgeber[abfolgenummer] = zeitstempelgeber;
     } else {
-        if (ketten[naechsteKette].methode == Erzeugungsmethode::DNS) {
+        if (kettendefinitionen[naechsteKette].methode == Erzeugungsmethode::DNS) {
             port1 = 32768 + rand()%32768; // Vereinigung IANA-Empfehlung und Linux-Kernel
             port2 = 53; // service name: domain
-            Zeitstempelgeber zeitstempelgeber(anfangszeit,ketten[naechsteKette].intervall,ketten[naechsteKette].vergroesserungsfaktor);
-            kettenzeitstempelgeber.insert(kettenzeitstempelgeber.end(),zeitstempelgeber);
+            Zeitstempelgeber zeitstempelgeber(anfangszeit,kettendefinitionen[naechsteKette].intervall,kettendefinitionen[naechsteKette].vergroesserungsfaktor);
+            abfolgenzeitstempelgeber[abfolgenummer] = zeitstempelgeber;
         } else {
             port1 = 0;
             port2 = 0;
-            Zeitstempelgeber zeitstempelgeber(anfangszeit,ketten[naechsteKette].intervall,ketten[naechsteKette].vergroesserungsfaktor);
-            kettenzeitstempelgeber.insert(kettenzeitstempelgeber.end(),zeitstempelgeber);
+            Zeitstempelgeber zeitstempelgeber(anfangszeit,kettendefinitionen[naechsteKette].intervall,kettendefinitionen[naechsteKette].vergroesserungsfaktor);
+            abfolgenzeitstempelgeber[abfolgenummer] = zeitstempelgeber;
         }
     }
     
-    Abfolge abfolge(naechsteKette,endzeitstempel,ketten[naechsteKette].methode,0,inklusiveLayer2,mac1,mac2,ip1,ip2,port1,port2);
+    Abfolge abfolge(naechsteKette,endzeitstempel,kettendefinitionen[naechsteKette].methode,0,inklusiveLayer2,mac1,mac2,ip1,ip2,port1,port2);
     kettenabfolgen[abfolgenummer] = abfolge;
+    return true;
 }
 
 bool PcapErzeuger::erstellePaket(uint32_t abfolgenummer) {
