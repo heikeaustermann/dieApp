@@ -1,7 +1,7 @@
 aufruf = g++
 aufruf_flags = -Wall -Wextra -pthread -std=c++17 -pedantic -fmax-errors=1
 gtest_dir = ../../googletest/googletest
-prog_dir = ../proof_of_concept
+prog_dir = ../modul_0_werkzeugkasten
 
 
 all : erz

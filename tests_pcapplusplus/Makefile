@@ -1,4 +1,4 @@
-include /usr/local/etc/PcapPlusPlus.mk
+include ../ressourcen/PcapPlusPlus.mk
 
 aufruf = g++
 aufruf_flags = -Wall -Wextra -pthread -std=c++17 -pedantic -fmax-errors=1
