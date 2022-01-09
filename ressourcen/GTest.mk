@@ -26,10 +26,10 @@ TEMPLATES := $(wildcard *.t) $(wildcard $(PROGRAM_DIR)*.t) $(wildcard $(CONFIG_D
 all : $(TEST)
 
 clean:
-	rm -f $(TEST) *.o *.pcap
+	rm -f $(TEST) *.o *.pcap *.csv hurst*.txt
 
 cleanall:
-	rm -rf $(TEST) *.o *.pcap $(GTEST_DIR)/lib/*.o
+	rm -rf $(TEST) *.o *.pcap *.csv hurst*.txt $(GTEST_DIR)/lib/*.o
 
 # referenziertes
 $(GTESTALL).o : $(GTEST_SRCS_)
