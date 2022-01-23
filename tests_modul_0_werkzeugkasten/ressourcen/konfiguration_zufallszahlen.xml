@@ -22,16 +22,10 @@
         <CHAINS>
             <CHAIN>
                 <CHAINNAME>Zufallszahlensender</CHAINNAME>
-                <WEIGHT>10</WEIGHT><LATESTART>0</LATESTART><EARLYEND>0</EARLYEND>
+                <WEIGHT>1</WEIGHT><LATESTART>0</LATESTART><EARLYEND>0</EARLYEND>
                 <FROMGROUP>sending</FROMGROUP><TOGROUP>receiving</TOGROUP>
                 <METHOD>RANDOMNUMBERS</METHOD><INTERVAL>30000</INTERVAL><FACTOR>100</FACTOR>
             </CHAIN>       
-            <CHAIN>
-                <CHAINNAME>Zufallszahlensender2</CHAINNAME>
-                <WEIGHT>1</WEIGHT><LATESTART>0</LATESTART><EARLYEND>0</EARLYEND>
-                <FROMGROUP>sending</FROMGROUP><TOGROUP>receiving</TOGROUP>
-                <METHOD>RANDOMNUMBERS</METHOD><INTERVAL>3000000</INTERVAL><FACTOR>100</FACTOR>
-            </CHAIN>   
         </CHAINS>
     </MODULE1>
     <MODULE2>

@@ -204,6 +204,7 @@ bool PcapErzeuger::befuelle(uint32_t abfolgenummer, long long anfangszeit) {
     }
     abfolgenzeiten[abfolgenummer] = anfangszeit;
     if (anfangszeit > endzeitpunkt) {return false;}
+    if (summegewichte == 0) {return false;}
 
     // bestimmen einer passenden Kette
     zufall = rand()%summegewichte + 1;
