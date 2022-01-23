@@ -215,6 +215,7 @@ bool PcapErzeuger::befuelle(uint32_t abfolgenummer, long long anfangszeit) {
     naechsteKette--;
 
     long long endzeitstempel = kettendefinitionen[naechsteKette].zeitraumende;
+    uint32_t schrittnummer = 0;
 
     int quelle = rand()%kettendefinitionen[naechsteKette].anzahlQuellen;
     ip1 = kettendefinitionen[naechsteKette].ipQuellen[quelle];
@@ -248,6 +249,7 @@ bool PcapErzeuger::befuelle(uint32_t abfolgenummer, long long anfangszeit) {
             port2 = 80; // service name: http
             Zeitstempelgeber zeitstempelgeber(anfangszeit,kettendefinitionen[naechsteKette].intervall,kettendefinitionen[naechsteKette].vergroesserungsfaktor);
             abfolgenzeitstempelgeber[abfolgenummer] = zeitstempelgeber;
+            schrittnummer = Intervallgeber::exponentiell(5,50000);
             break;
         }
     default:
@@ -260,7 +262,7 @@ bool PcapErzeuger::befuelle(uint32_t abfolgenummer, long long anfangszeit) {
         }
     }
     
-    Abfolge abfolge(naechsteKette,endzeitstempel,kettendefinitionen[naechsteKette].methode,0,inklusiveLayer2,mac1,mac2,ip1,ip2,port1,port2);
+    Abfolge abfolge(naechsteKette,endzeitstempel,kettendefinitionen[naechsteKette].methode,schrittnummer,inklusiveLayer2,mac1,mac2,ip1,ip2,port1,port2);
     kettenabfolgen[abfolgenummer] = abfolge;
     return true;
 }
