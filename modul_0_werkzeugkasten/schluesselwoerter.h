@@ -4,6 +4,7 @@
 enum class Erzeugungsmethode {
     APPDATA,
     DNS,
+    RANDOMNUMBERS,
     UNDEFINED
 };
 

@@ -4,6 +4,7 @@
 
 std::string dateiort = "ressourcen/konfiguration.xml";
 std::string dateiortalternative = "ressourcen/konfiguration_alternativ.xml";
+std::string dateiortzufallszahlen = "ressourcen/konfiguration_zufallszahlen.xml";
 
 TEST(KonfigleserTest,Einlesetest){
     Konfigleser konfigleser(dateiort);
@@ -133,6 +134,12 @@ TEST(KonfigleserTest,Methodegebertest){
     Erzeugungsmethode meth2 = konfigleser.gebeMethode(2);
     EXPECT_EQ(meth1,Erzeugungsmethode::APPDATA); 
     EXPECT_EQ(meth2,Erzeugungsmethode::DNS);
+}
+
+TEST(KonfigleserTest,Methodegebertesterweitert){
+    Konfigleser konfigleser(dateiortzufallszahlen);
+    Erzeugungsmethode meth1 = konfigleser.gebeMethode(1);
+    EXPECT_EQ(meth1,Erzeugungsmethode::RANDOMNUMBERS); 
 }
 
 TEST(KonfigleserTest,ErstesQuellIntervallgebertest){

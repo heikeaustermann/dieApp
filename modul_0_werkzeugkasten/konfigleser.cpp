@@ -278,7 +278,11 @@ Erzeugungsmethode Konfigleser::gebeMethode(uint32_t kettenid) {
         if (fuervergleich == "DNS") {
             ausgabe = Erzeugungsmethode::DNS;
         } else {
-            ausgabe = Erzeugungsmethode::UNDEFINED;
+            if (fuervergleich == "RANDOMNUMBERS") {
+                ausgabe = Erzeugungsmethode::RANDOMNUMBERS;
+            } else {
+                ausgabe = Erzeugungsmethode::UNDEFINED;
+            }
         }
     }
     return ausgabe;

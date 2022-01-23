@@ -227,23 +227,37 @@ bool PcapErzeuger::befuelle(uint32_t abfolgenummer, long long anfangszeit) {
     switch (kettendefinitionen[naechsteKette].methode)
     {
     case Erzeugungsmethode::APPDATA:
-        port1 = 32768 + rand()%32768; // Vereinigung IANA-Empfehlung und Linux-Kernel
-        port2 = 443; // service name: https
-        Zeitstempelgeber zeitstempelgeber(anfangszeit,kettendefinitionen[naechsteKette].intervall,kettendefinitionen[naechsteKette].vergroesserungsfaktor,kettendefinitionen[naechsteKette].vergroesserungswahrscheinlichkeit);
-        abfolgenzeitstempelgeber[abfolgenummer] = zeitstempelgeber;
-        break;
+        {
+            port1 = 32768 + rand()%32768; // Vereinigung IANA-Empfehlung und Linux-Kernel
+            port2 = 443; // service name: https
+            Zeitstempelgeber zeitstempelgeber(anfangszeit,kettendefinitionen[naechsteKette].intervall,kettendefinitionen[naechsteKette].vergroesserungsfaktor,kettendefinitionen[naechsteKette].vergroesserungswahrscheinlichkeit);
+            abfolgenzeitstempelgeber[abfolgenummer] = zeitstempelgeber;
+            break;
+        }
     case Erzeugungsmethode::DNS:
-        port1 = 32768 + rand()%32768; // Vereinigung IANA-Empfehlung und Linux-Kernel
-        port2 = 53; // service name: domain
-        Zeitstempelgeber zeitstempelgeber(anfangszeit,kettendefinitionen[naechsteKette].intervall,kettendefinitionen[naechsteKette].vergroesserungsfaktor);
-        abfolgenzeitstempelgeber[abfolgenummer] = zeitstempelgeber;
-        break;
+        {
+            port1 = 32768 + rand()%32768; // Vereinigung IANA-Empfehlung und Linux-Kernel
+            port2 = 53; // service name: domain
+            Zeitstempelgeber zeitstempelgeber(anfangszeit,kettendefinitionen[naechsteKette].intervall,kettendefinitionen[naechsteKette].vergroesserungsfaktor);
+            abfolgenzeitstempelgeber[abfolgenummer] = zeitstempelgeber;
+            break;
+        }
+    case Erzeugungsmethode::RANDOMNUMBERS:
+        {
+            port1 = 32768 + rand()%32768; // Vereinigung IANA-Empfehlung und Linux-Kernel
+            port2 = 80; // service name: http
+            Zeitstempelgeber zeitstempelgeber(anfangszeit,kettendefinitionen[naechsteKette].intervall,kettendefinitionen[naechsteKette].vergroesserungsfaktor);
+            abfolgenzeitstempelgeber[abfolgenummer] = zeitstempelgeber;
+            break;
+        }
     default:
-        port1 = 0;
-        port2 = 0;
-        Zeitstempelgeber zeitstempelgeber(anfangszeit,kettendefinitionen[naechsteKette].intervall,kettendefinitionen[naechsteKette].vergroesserungsfaktor);
-        abfolgenzeitstempelgeber[abfolgenummer] = zeitstempelgeber;
-        break;
+        {
+            port1 = 0;
+            port2 = 0;
+            Zeitstempelgeber zeitstempelgeber(anfangszeit,kettendefinitionen[naechsteKette].intervall,kettendefinitionen[naechsteKette].vergroesserungsfaktor);
+            abfolgenzeitstempelgeber[abfolgenummer] = zeitstempelgeber;
+            break;
+        }
     }
     
     Abfolge abfolge(naechsteKette,endzeitstempel,kettendefinitionen[naechsteKette].methode,0,inklusiveLayer2,mac1,mac2,ip1,ip2,port1,port2);
@@ -283,11 +297,29 @@ bool PcapErzeuger::erstellePaket(uint32_t abfolgenummer) {
     case Erzeugungsmethode::DNS:
         pruef = schreibeUDPPaket();
         break;
+    case Erzeugungsmethode::RANDOMNUMBERS:
+        sequno = 0;
+        ackno = 0;
+        tcpack = true;
+        tcpsyn = false;
+        tcpfin= false;
+        tcppsh = true;
+        {
+            uint32_t laenge = 1 + rand()%5;
+            payload.clear();
+            //payload.append("170303");
+            //payload.append(Hexbytes::hex2bytes(laenge));
+            for (uint32_t j = 0; j<laenge; j++) {
+                payload.append(Hexbytes::hexbyte(rand()%256));
+            }
+        }
+        pruef = schreibeTCPPaket();
+        break;
     default:
         pruef = false;
         break;
     }
-
+       
     return pruef;
 }
 
