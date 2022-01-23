@@ -224,24 +224,26 @@ bool PcapErzeuger::befuelle(uint32_t abfolgenummer, long long anfangszeit) {
     ip2 = kettendefinitionen[naechsteKette].ipZiele[ziel];
     mac2 = kettendefinitionen[naechsteKette].macZiele[ziel];
 
-    if (kettendefinitionen[naechsteKette].methode == Erzeugungsmethode::APPDATA)
+    switch (kettendefinitionen[naechsteKette].methode)
     {
+    case Erzeugungsmethode::APPDATA:
         port1 = 32768 + rand()%32768; // Vereinigung IANA-Empfehlung und Linux-Kernel
         port2 = 443; // service name: https
         Zeitstempelgeber zeitstempelgeber(anfangszeit,kettendefinitionen[naechsteKette].intervall,kettendefinitionen[naechsteKette].vergroesserungsfaktor,kettendefinitionen[naechsteKette].vergroesserungswahrscheinlichkeit);
         abfolgenzeitstempelgeber[abfolgenummer] = zeitstempelgeber;
-    } else {
-        if (kettendefinitionen[naechsteKette].methode == Erzeugungsmethode::DNS) {
-            port1 = 32768 + rand()%32768; // Vereinigung IANA-Empfehlung und Linux-Kernel
-            port2 = 53; // service name: domain
-            Zeitstempelgeber zeitstempelgeber(anfangszeit,kettendefinitionen[naechsteKette].intervall,kettendefinitionen[naechsteKette].vergroesserungsfaktor);
-            abfolgenzeitstempelgeber[abfolgenummer] = zeitstempelgeber;
-        } else {
-            port1 = 0;
-            port2 = 0;
-            Zeitstempelgeber zeitstempelgeber(anfangszeit,kettendefinitionen[naechsteKette].intervall,kettendefinitionen[naechsteKette].vergroesserungsfaktor);
-            abfolgenzeitstempelgeber[abfolgenummer] = zeitstempelgeber;
-        }
+        break;
+    case Erzeugungsmethode::DNS:
+        port1 = 32768 + rand()%32768; // Vereinigung IANA-Empfehlung und Linux-Kernel
+        port2 = 53; // service name: domain
+        Zeitstempelgeber zeitstempelgeber(anfangszeit,kettendefinitionen[naechsteKette].intervall,kettendefinitionen[naechsteKette].vergroesserungsfaktor);
+        abfolgenzeitstempelgeber[abfolgenummer] = zeitstempelgeber;
+        break;
+    default:
+        port1 = 0;
+        port2 = 0;
+        Zeitstempelgeber zeitstempelgeber(anfangszeit,kettendefinitionen[naechsteKette].intervall,kettendefinitionen[naechsteKette].vergroesserungsfaktor);
+        abfolgenzeitstempelgeber[abfolgenummer] = zeitstempelgeber;
+        break;
     }
     
     Abfolge abfolge(naechsteKette,endzeitstempel,kettendefinitionen[naechsteKette].methode,0,inklusiveLayer2,mac1,mac2,ip1,ip2,port1,port2);
@@ -258,28 +260,32 @@ bool PcapErzeuger::erstellePaket(uint32_t abfolgenummer) {
     port1 = kettenabfolgen[abfolgenummer].portquelle;
     port2 = kettenabfolgen[abfolgenummer].portziel;
 
-    if (kettenabfolgen[abfolgenummer].methode == Erzeugungsmethode::APPDATA) {
+    switch (kettenabfolgen[abfolgenummer].methode)
+    {
+    case Erzeugungsmethode::APPDATA:
         sequno = rand();
         ackno = rand();
         tcpack = true;
         tcpsyn = false;
         tcpfin= false;
         tcppsh = true;
-
-        uint32_t laenge = 1+Intervallgeber::fraktalmaximalerwert(10,4000,2,20);
-        payload.clear();
-        payload.append("170303");
-        payload.append(Hexbytes::hex2bytes(laenge));
-        for (uint32_t j = 0; j<laenge; j++) {
-            payload.append(Hexbytes::hexbyte(rand()%256));
+        {
+            uint32_t laenge = 1+Intervallgeber::fraktalmaximalerwert(10,4000,2,20);
+            payload.clear();
+            payload.append("170303");
+            payload.append(Hexbytes::hex2bytes(laenge));
+            for (uint32_t j = 0; j<laenge; j++) {
+                payload.append(Hexbytes::hexbyte(rand()%256));
+            }
         }
         pruef = schreibeTCPPaket();
-    } else { 
-        if (kettenabfolgen[abfolgenummer].methode == Erzeugungsmethode::DNS) {
-            pruef = schreibeUDPPaket();
-        } else {
-            pruef = false;
-        }
+        break;
+    case Erzeugungsmethode::DNS:
+        pruef = schreibeUDPPaket();
+        break;
+    default:
+        pruef = false;
+        break;
     }
 
     return pruef;
