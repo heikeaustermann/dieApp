@@ -35,7 +35,6 @@ make
 Um nur die erzeugten Dateien zu löschen und die App erneut auszuführen:
 ```
 make new
-make
 ./dieApp
 ```
 
